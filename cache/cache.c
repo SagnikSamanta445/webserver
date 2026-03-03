@@ -1,143 +1,219 @@
 #include "cache.h"
-#include <pthread.h>
+
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
-#include <thread_pool.h>
+#include <pthread.h>
 
-/* ---------------- PRIVATE GLOBALS ---------------- */
+static cache_node* hash_table[HASH_SIZE];
 
-static cache_element* head = NULL;
-static int cache_size = 0;
-static pthread_mutex_t lock;
+static cache_node* head = NULL;
+static cache_node* tail = NULL;
 
-/* ---------------- INIT ---------------- */
+static size_t current_cache_size = 0;
+static pthread_mutex_t cache_lock;
 
-void cache_init() {
-    pthread_mutex_init(&lock, NULL);
+
+/*-------------------HASH FUNCTION -------------------*/
+static unsigned int hash_func(const char* str)
+{
+    unsigned int hash = 5381;
+
+    while(*str)
+        hash = ((hash << 5) + hash) + *str++;
+    
+    return hash % HASH_SIZE;
 }
 
-/* ---------------- INTERNAL LRU REMOVE ---------------- */
+/*-------------------DLL helpers----------------------*/
+static void remove_from_list(cache_node* node)
+{
+    if(!node) return;
 
-static void remove_cache_element() {
-    if (head == NULL)
+    if(node->prev) node->prev->next = node->next;
+
+    if(node->next) node->next->prev = node->prev;
+
+    if(node == head) head = node->next;
+
+    if(node == tail) tail = node->prev;
+
+    node->prev = NULL;
+    node->next = NULL;
+}
+
+static void insert_at_head(cache_node* node)
+{
+    node->prev = NULL;
+    node->next = head;
+
+    if (head)
+        head->prev = node;
+
+    head = node;
+
+    if (!tail)
+        tail = node;
+}
+
+
+static void move_to_front(cache_node* node)
+{
+    if (node == head)
         return;
 
-    cache_element* prev = NULL;
-    cache_element* curr = head;
-
-    cache_element* lru = head;
-    cache_element* lru_prev = NULL;
-
-    time_t min_time = head->lru_time_track;
-
-    while (curr != NULL) {
-        if (curr->lru_time_track < min_time) {
-            min_time = curr->lru_time_track;
-            lru = curr;
-            lru_prev = prev;
-        }
-
-        prev = curr;
-        curr = curr->next;
-    }
-
-    if (lru_prev == NULL)
-        head = lru->next;
-    else
-        lru_prev->next = lru->next;
-
-    cache_size -= (lru->len +
-                   sizeof(cache_element) +
-                   strlen(lru->url) + 1);
-
-    free(lru->data);
-    free(lru->url);
-    free(lru);
+    remove_from_list(node);
+    insert_at_head(node);
 }
 
-/* ---------------- FIND ---------------- */
+// Evict least recently used item from cache.
+// Logic to remove from hash table and DLL, and free memory.
+static void evict_lru()
+{
+    if (!tail)
+        return;
 
-int find(char* url, char** data_copy, int* size_copy) {
+    cache_node* node = tail;
 
-    pthread_mutex_lock(&lock);
+    /* Remove from hash table */
+    unsigned int index = hash_func(node->url);
 
-    cache_element* site = head;
+    cache_node** curr = &hash_table[index];
+    while (*curr && *curr != node)
+        curr = &(*curr)->hash_next;
 
-    while (site != NULL) {
-        if (strcmp(site->url, url) == 0) {
+    if (*curr)
+        *curr = node->hash_next;
 
-            /* Update LRU timestamp */
-            site->lru_time_track = time(NULL);
+    /* Remove from DLL */
+    remove_from_list(node);
 
-            *size_copy = site->len;
+    current_cache_size -= node->size;
 
-            *data_copy = malloc(site->len);
-            if (!(*data_copy)) {
-                pthread_mutex_unlock(&lock);
+    free(node->url);
+    free(node->data);
+    free(node);
+}
+
+void cache_init()
+{
+    memset(hash_table, 0, sizeof(hash_table));
+    head = NULL;
+    tail = NULL;
+    current_cache_size = 0;
+    pthread_mutex_init(&cache_lock, NULL);
+}
+
+int cache_get(const char* url, char** data_out, int* size_out)
+{
+    pthread_mutex_lock(&cache_lock);
+
+    unsigned int index = hash_func(url);
+
+    cache_node* node = hash_table[index];
+
+    while (node)
+    {
+        if (strcmp(node->url, url) == 0)
+        {
+            move_to_front(node);
+
+            *size_out = node->size;
+
+            *data_out = malloc(node->size);
+            if (!*data_out)
+            {
+                pthread_mutex_unlock(&cache_lock);
                 return 0;
             }
 
-            memcpy(*data_copy, site->data, site->len);
+            memcpy(*data_out, node->data, node->size);
 
-            pthread_mutex_unlock(&lock);
+            pthread_mutex_unlock(&cache_lock);
             return 1;
         }
 
-        site = site->next;
+        node = node->hash_next;
     }
 
-    pthread_mutex_unlock(&lock);
+    pthread_mutex_unlock(&cache_lock);
     return 0;
 }
 
-/* ---------------- ADD ---------------- */
 
-int add_cache_element(char* data, int size, char* url) {
+void cache_put(const char* url, const char* data, int size)
+{
+    if (size <= 0 || size > MAX_CACHE_SIZE)
+        return;
 
-    int element_size =
-        size + strlen(url) + sizeof(cache_element) + 1;
+    pthread_mutex_lock(&cache_lock);
 
-    if (element_size > MAX_ELEMENT_SIZE)
-        return 0;
+    unsigned int index = hash_func(url);
+    cache_node* node = hash_table[index];
 
-    pthread_mutex_lock(&lock);
+    /* -------- 1. CHECK IF ALREADY EXISTS -------- */
 
-    /* Evict until space available */
-    while (cache_size + element_size > MAX_SIZE)
-        remove_cache_element();
+    while (node)
+    {
+        if (strcmp(node->url, url) == 0)
+        {
+            current_cache_size -= node->size;
 
-    cache_element* new_node =
-        malloc(sizeof(cache_element));
+            free(node->data);
+            node->data = malloc(size);
+            if (!node->data) {
+                pthread_mutex_unlock(&cache_lock);
+                return;
+            }
 
-    if (!new_node) {
-        pthread_mutex_unlock(&lock);
-        return 0;
+            memcpy(node->data, data, size);
+            node->size = size;
+
+            move_to_front(node);
+
+            while (current_cache_size + size > MAX_CACHE_SIZE)
+                evict_lru();
+
+            current_cache_size += size;
+
+            pthread_mutex_unlock(&cache_lock);
+            return;
+        }
+
+        node = node->hash_next;
     }
 
-    new_node->data = malloc(size);
-    new_node->url = strdup(url);
+    /* -------- 2. INSERT NEW NODE -------- */
 
-    if (!new_node->data || !new_node->url) {
-        free(new_node->data);
+    while (current_cache_size + size > MAX_CACHE_SIZE)
+        evict_lru();
+
+    cache_node* new_node = malloc(sizeof(cache_node));
+    if (!new_node) {
+        pthread_mutex_unlock(&cache_lock);
+        return;
+    }
+
+    new_node->url = strdup(url);
+    new_node->data = malloc(size);
+
+    if (!new_node->url || !new_node->data)
+    {
         free(new_node->url);
+        free(new_node->data);
         free(new_node);
-        pthread_mutex_unlock(&lock);
-        return 0;
+        pthread_mutex_unlock(&cache_lock);
+        return;
     }
 
     memcpy(new_node->data, data, size);
+    new_node->size = size;
 
-    new_node->len = size;
-    new_node->lru_time_track = time(NULL);
+    insert_at_head(new_node);
 
-    /* Insert at head */
-    new_node->next = head;
-    head = new_node;
+    new_node->hash_next = hash_table[index];
+    hash_table[index] = new_node;
 
-    cache_size += element_size;
+    current_cache_size += size;
 
-    pthread_mutex_unlock(&lock);
-
-    return 1;
+    pthread_mutex_unlock(&cache_lock);
 }

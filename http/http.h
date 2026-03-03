@@ -11,4 +11,5 @@ int sendErrorMessage(int socket, int status_code);
 
 int checkHTTPversion(char *msg);
 
+int connectRemoteServer(char* host_addr, int port_num);
 #endif

@@ -8,15 +8,20 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <arpa/inet.h>
 
 #define MAX_BYTES 4096
+
+static int handle_connect(int clientSocekt, 
+                          struct ParsedRequest* request);
+static void tunnel_data(int clientSocket, int remoteSocket);
 
 void handle_client(int socket)
 {
     char* buffer = calloc(MAX_BYTES, 1);
-    if (!buffer) {
+    if (!buffer)
         return;
-    }
 
     int total_bytes = 0;
     int bytes_recv;
@@ -60,9 +65,10 @@ void handle_client(int socket)
     char* cached_data = NULL;
     int cached_size = 0;
 
-    if (find(tempReq, &cached_data, &cached_size))
+    if (cache_get(tempReq, &cached_data, &cached_size))
     {
         int sent = 0;
+
         while (sent < cached_size)
         {
             int chunk =
@@ -78,20 +84,25 @@ void handle_client(int socket)
     }
     else
     {
-        struct ParsedRequest* request = ParsedRequest_create();
+        struct ParsedRequest* request =
+            ParsedRequest_create();
 
         if (ParsedRequest_parse(request,
                                 buffer,
                                 total_bytes) == 0)
         {
-            if (!strcmp(request->method, "GET") &&
+            if (!strcmp(request->method, "CONNECT"))
+            {
+                handle_connect(socket, request);
+            }
+            else if (!strcmp(request->method, "GET") &&
                 request->host &&
                 request->path &&
                 checkHTTPversion(request->version) == 1)
             {
                 if (handle_request(socket,
-                                   request,
-                                   tempReq) == -1)
+                           request,
+                           tempReq) == -1)
                 {
                     sendErrorMessage(socket, 500);
                 }
@@ -109,6 +120,101 @@ void handle_client(int socket)
         ParsedRequest_destroy(request);
     }
 
+    
+
     free(tempReq);
     free(buffer);
+}
+
+static int handle_connect(int clientSocket,
+                          struct ParsedRequest* request)
+{
+    int server_port =
+        request->port ? atoi(request->port) : 443;
+
+    int remoteSocket =
+        connectRemoteServer(request->host,
+                            server_port);
+
+    if (remoteSocket < 0)
+    {
+        sendErrorMessage(clientSocket, 500);
+        return -1;
+    }
+
+    const char* response =
+        "HTTP/1.1 200 Connection Established\r\n\r\n";
+
+    send(clientSocket,
+         response,
+         strlen(response),
+         0);
+
+    tunnel_data(clientSocket, remoteSocket);
+
+    close(remoteSocket);
+    return 0;
+}
+
+static void tunnel_data(int clientSocket,
+                        int remoteSocket)
+{
+    fd_set readfds;
+    char buffer[8192];
+
+    while (1)
+    {
+        FD_ZERO(&readfds);
+        FD_SET(clientSocket, &readfds);
+        FD_SET(remoteSocket, &readfds);
+
+        int maxfd =
+            (clientSocket > remoteSocket ?
+             clientSocket : remoteSocket) + 1;
+
+        if (select(maxfd,
+                   &readfds,
+                   NULL,
+                   NULL,
+                   NULL) <= 0)
+        {
+            break;
+        }
+
+        /* Client → Server */
+        if (FD_ISSET(clientSocket, &readfds))
+        {
+            int bytes =
+                recv(clientSocket,
+                     buffer,
+                     sizeof(buffer),
+                     0);
+
+            if (bytes <= 0)
+                break;
+
+            send(remoteSocket,
+                 buffer,
+                 bytes,
+                 0);
+        }
+
+        /* Server → Client */
+        if (FD_ISSET(remoteSocket, &readfds))
+        {
+            int bytes =
+                recv(remoteSocket,
+                     buffer,
+                     sizeof(buffer),
+                     0);
+
+            if (bytes <= 0)
+                break;
+
+            send(clientSocket,
+                 buffer,
+                 bytes,
+                 0);
+        }
+    }
 }

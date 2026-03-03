@@ -1,21 +1,25 @@
 #ifndef CACHE_H
 #define CACHE_H
 
-#include <time.h>
+#include <stddef.h>
 
-#define MAX_SIZE 200*(1<<20)
-#define MAX_ELEMENT_SIZE 10*(1<<20)
+#define MAX_CACHE_SIZE (200*(1 << 20))
+#define HASH_SIZE 1024
 
-typedef struct cache_element {
-    char* data;
-    int len;
-    char* url;
-    time_t lru_time_track;
-    struct cache_element* next;
-} cache_element;
+typedef struct cache_node {
+        char* url;                 // URL string
+        char* data;                // Cached data
+        int size;                  // Size of cached data
 
-void cache_init();
-int find(char* url, char** data_copy, int* size_copy);
-int add_cache_element(char* data, int size, char* url);
+        struct cache_node* prev;   // Previous node in LRU list
+        struct cache_node* next;   // Next node in LRU list
+
+        struct cache_node* hash_next;  // Next node in hash bucket to handle collisions
+
+}cache_node;
+
+void cache_init();                                                    // Initialize the cache system
+int cache_get(const char* url, char** data_out, int* size_out );      // Retrieve cached data for a given URL, returns 1 if found, 0 otherwise
+void cache_put(const char* url, const char* data, int size);          // Add data to the cache for a given URL, evicting least recently used items if necessary
 
 #endif

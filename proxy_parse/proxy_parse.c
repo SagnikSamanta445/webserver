@@ -397,16 +397,47 @@ ParsedRequest_parse(struct ParsedRequest * parse, const char *buf,
 	  parse->buf = NULL;
 	  return -1;
      }
-     if (strcmp (parse->method, "GET")) {
-	  debug( "invalid request line, method not 'GET': %s\n", 
-		 parse->method);
-	  free(tmp_buf);
-	  free(parse->buf);
-	  parse->buf = NULL;
-	  return -1;
+     if (strcmp(parse->method, "GET") != 0 &&
+          strcmp(parse->method, "CONNECT") != 0) {
+          debug("invalid request line, unsupported method: %s\n",
+               parse->method);
+               free(tmp_buf);
+               free(parse->buf);
+               parse->buf = NULL;
+          return -1;
      }
 
      full_addr = strtok_r(NULL, " ", &saveptr);
+
+     if (strcmp(parse->method, "CONNECT") == 0) {
+
+              parse->version = strtok_r(NULL, " ", &saveptr);
+          if (!parse->version || strncmp(parse->version, "HTTP/", 5)) {
+               free(tmp_buf);
+               free(parse->buf);
+               parse->buf = NULL;
+               return -1;
+          }
+
+          /* full_addr = host:port */
+          char *colon = strchr(full_addr, ':');
+          if (!colon) {
+               free(tmp_buf);
+               free(parse->buf);
+               parse->buf = NULL;
+               return -1;
+          }
+
+          *colon = '\0';
+
+          parse->host = full_addr;
+          parse->port = colon + 1;
+          parse->path = NULL;
+          parse->protocol = NULL;
+
+          /* Skip normal GET parsing */
+          goto parse_headers;
+     }         
 
      if (full_addr == NULL) {
 	  debug( "invalid request line, no full address\n");
@@ -513,7 +544,7 @@ ParsedRequest_parse(struct ParsedRequest * parse, const char *buf,
 	  }
      }
 
-   
+     parse_headers:
      /* Parse headers */
      int ret = 0;
      currentHeader = strstr(tmp_buf, "\r\n")+2;

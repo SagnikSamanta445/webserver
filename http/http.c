@@ -13,7 +13,7 @@
 
 /* ---------------- CONNECT TO REMOTE SERVER ---------------- */
 
-static int connectRemoteServer(char* host_addr, int port_num)
+int connectRemoteServer(char* host_addr, int port_num)
 {
     int remoteSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (remoteSocket < 0)
@@ -133,9 +133,9 @@ int handle_request(int clientSocket,
         total_size += bytes_recv;
     }
 
-    add_cache_element(temp_buffer,
-                      total_size,
-                      tempReq);
+    cache_put(tempReq,
+                      temp_buffer,
+                      total_size);
 
     free(temp_buffer);
     free(buf);

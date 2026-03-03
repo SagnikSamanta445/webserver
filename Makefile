@@ -1,8 +1,19 @@
 # Compiler
 CC = clang
 
-# Flags
-CFLAGS = -pthread -g -Wall -Wextra
+# Base compiler flags
+BASE_FLAGS = -pthread -g -Wall -Wextra
+
+# Sanitizer options: none, address, thread for memory and thread error detection
+SAN ?= none
+
+ifeq ($(SAN), address)
+    CFLAGS = $(BASE_FLAGS) -fsanitize=address
+else ifeq ($(SAN), thread)
+    CFLAGS = $(BASE_FLAGS) -fsanitize=thread
+else
+    CFLAGS = $(BASE_FLAGS)
+endif
 
 # Include directories
 INCLUDES = -Icache \
