@@ -22,4 +22,7 @@ void cache_init();                                                    // Initial
 int cache_get(const char* url, char** data_out, int* size_out );      // Retrieve cached data for a given URL, returns 1 if found, 0 otherwise
 void cache_put(const char* url, const char* data, int size);          // Add data to the cache for a given URL, evicting least recently used items if necessary
 
+double cache_hit_ratio();
+void cache_print_stats();
+
 #endif

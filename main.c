@@ -6,8 +6,16 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define WORKER_THREADS 8
+
+void handle_sigint(int sig)
+{
+    printf("\nShutting down proxy...\n");
+    cache_print_stats();
+    exit(0);
+}
 
 int main(int argc, char* argv[])
 {
@@ -23,6 +31,8 @@ int main(int argc, char* argv[])
     thread_pool_init(WORKER_THREADS);
 
     int server_socket = create_server_socket(port);
+
+    signal(SIGINT, handle_sigint);
 
     while (1)
     {

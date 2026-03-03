@@ -1,5 +1,6 @@
 #include "cache.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
@@ -10,6 +11,8 @@ static cache_node* head = NULL;
 static cache_node* tail = NULL;
 
 static size_t current_cache_size = 0;
+static size_t total_lookups = 0;
+static size_t total_hits = 0;
 static pthread_mutex_t cache_lock;
 
 
@@ -107,6 +110,8 @@ int cache_get(const char* url, char** data_out, int* size_out)
 {
     pthread_mutex_lock(&cache_lock);
 
+    total_lookups++;
+
     unsigned int index = hash_func(url);
 
     cache_node* node = hash_table[index];
@@ -115,6 +120,8 @@ int cache_get(const char* url, char** data_out, int* size_out)
     {
         if (strcmp(node->url, url) == 0)
         {
+            total_hits++;
+
             move_to_front(node);
 
             *size_out = node->size;
@@ -216,4 +223,21 @@ void cache_put(const char* url, const char* data, int size)
     current_cache_size += size;
 
     pthread_mutex_unlock(&cache_lock);
+}
+
+
+double cache_hit_ratio()
+{
+    if (total_lookups == 0)
+        return 0.0;
+
+    return (double) total_hits / total_lookups;
+}
+
+void cache_print_stats()
+{
+    printf("Cache lookups: %zu\n", total_lookups);
+    printf("Cache hits: %zu\n", total_hits);
+    printf("Hit ratio: %.2f%%\n",
+           cache_hit_ratio() * 100);
 }
