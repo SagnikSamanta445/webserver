@@ -51,7 +51,7 @@ $(TARGET): $(OBJ)
 
 # Clean rule
 clean:
-	rm -f */*.o $(TARGET)
+	rm -f */*.o *.o $(TARGET)
 
 # Rebuild shortcut
 rebuild: clean $(TARGET)
@@ -60,10 +60,3 @@ rebuild: clean $(TARGET)
 test: $(TARGET)
 	python3 tests/stress_test.py
 
-# Run proxy and test automatically
-test-auto: $(TARGET)
-	@./$(TARGET) 8080 & \
-	PROXY_PID=$$!; \
-	trap "kill $$PROXY_PID" EXIT; \
-	sleep 2; \
-	python3 tests/stress_test.py

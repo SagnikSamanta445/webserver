@@ -26,6 +26,7 @@ void stats_record_connect() {
 
 void stats_record_error() {
     pthread_mutex_lock(&g_stats.lock);
+    g_stats.total_requests++;
     g_stats.error_count++;
     pthread_mutex_unlock(&g_stats.lock);
 }

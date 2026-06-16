@@ -140,9 +140,9 @@ int handle_request(int clientSocket,
     }
 
     stats_record_bytes_origin(total_size);
-    cache_put(tempReq,
-                      temp_buffer,
-                      total_size);
+
+    if(temp_buffer)
+        cache_put(tempReq,temp_buffer, total_size);
 
     free(temp_buffer);
     free(buf);

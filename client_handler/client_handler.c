@@ -155,7 +155,11 @@ static int handle_connect(int clientSocket,
          strlen(response),
          0);
 
+    //printf("CONNECT START %s:%d\n",request->host,server_port);
+
     tunnel_data(clientSocket, remoteSocket);
+
+    //printf("CONNECT END %s:%d\n",request->host,server_port);
 
     close(remoteSocket);
     return 0;
@@ -177,11 +181,12 @@ static void tunnel_data(int clientSocket,
             (clientSocket > remoteSocket ?
              clientSocket : remoteSocket) + 1;
 
+        struct timeval tv = { .tv_sec = 2, .tv_usec = 0 };
         if (select(maxfd,
                    &readfds,
                    NULL,
                    NULL,
-                   NULL) <= 0)
+                   &tv) <= 0)
         {
             break;
         }

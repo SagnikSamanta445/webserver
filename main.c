@@ -53,7 +53,7 @@ static void print_stats()
     printf("\n  CACHE\n");
     printf("    Hit ratio: %.2f%%   Evictions: %zu\n",
            cache_hit_ratio() * 100, cache_eviction_count());
-    printf("    Size: %s / 200 MB   Entries: %zu\n",
+    printf("    Size: %s / 200MB  Entries: %zu\n",
            buf_sz, cache_entry_count());
     printf("\n  BANDWIDTH\n");
     printf("    From origin: %s   From cache: %s\n", buf_origin, buf_cache);

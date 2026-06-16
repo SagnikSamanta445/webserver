@@ -17,10 +17,15 @@ static pthread_cond_t queue_not_empty;
 static pthread_t *workers;
 static int thread_count;
 
+typedef struct {
+    int worker_id;
+} worker_arg_t;
+
 // Worker thread function: continuously fetch tasks from the queue and handle them
 static void* worker_loop(void* arg)
 {
-    
+    int id = ((worker_arg_t*)arg)->worker_id;
+    free(arg);
     while (1)
     {
         pthread_mutex_lock(&queue_lock);                          
@@ -33,7 +38,7 @@ static void* worker_loop(void* arg)
 
         pthread_mutex_unlock(&queue_lock);                      
 
-        printf("Worker %lu handling client\n", pthread_self());
+        printf("Worker %lu handling client\n", id);
         handle_client(client_socket);                          
         close(client_socket);                                   
     }
@@ -53,7 +58,11 @@ void thread_pool_init(int num_threads)
     workers = malloc(sizeof(pthread_t) * num_threads);
 
     for (int i = 0; i < num_threads; i++)
-        pthread_create(&workers[i], NULL, worker_loop, NULL);
+    {
+        worker_arg_t *arg = malloc(sizeof(worker_arg_t));
+        arg->worker_id = i;
+        pthread_create(&workers[i], NULL, worker_loop, arg);
+    }
 }
 
 
