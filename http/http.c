@@ -1,6 +1,6 @@
 #include "http.h"
 #include "cache.h"
-
+#include "stats.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,38 +9,42 @@
 #include <netdb.h>
 #include <sys/socket.h>
 
+
 #define MAX_BYTES 4096
 
 /* ---------------- CONNECT TO REMOTE SERVER ---------------- */
 
 int connectRemoteServer(char* host_addr, int port_num)
 {
-    int remoteSocket = socket(AF_INET, SOCK_STREAM, 0);
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    char port_str[6];
+    snprintf(port_str, sizeof(port_str), "%d", port_num);
+
+    if (getaddrinfo(host_addr, port_str, &hints, &res) != 0)
+        return -1;
+
+    // Create socket using the result's own fields
+    int remoteSocket = socket(res->ai_family,
+                              res->ai_socktype,
+                              res->ai_protocol);
     if (remoteSocket < 0)
-        return -1;
-
-    struct hostent* host = gethostbyname(host_addr);
-    if (host == NULL)
-        return -1;
-
-    struct sockaddr_in server_addr;
-    memset(&server_addr, 0, sizeof(server_addr));
-
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port_num);
-
-    memcpy(&server_addr.sin_addr.s_addr,
-           host->h_addr_list[0],
-           host->h_length);
-
-    if (connect(remoteSocket,
-                (struct sockaddr*)&server_addr,
-                sizeof(server_addr)) < 0)
     {
+        freeaddrinfo(res);
+        return -1;
+    }
+
+    if (connect(remoteSocket, res->ai_addr, res->ai_addrlen) < 0)
+    {
+        freeaddrinfo(res);
         close(remoteSocket);
         return -1;
     }
 
+    freeaddrinfo(res);
     return remoteSocket;
 }
 
@@ -74,7 +78,6 @@ int handle_request(int clientSocket,
         return -1;
     }
 
-    /* Force null termination */
     buf[MAX_BYTES - 1] = '\0';
 
     int server_port =
@@ -120,10 +123,13 @@ int handle_request(int clientSocket,
         if (total_size + bytes_recv > capacity)
         {
             capacity *= 2;
-            temp_buffer =
-                realloc(temp_buffer, capacity);
-            if (!temp_buffer)
+            char* new_buf = realloc(temp_buffer, capacity);
+            if(!new_buf){
+                free(temp_buffer);
+                temp_buffer = NULL;
                 break;
+            }
+            temp_buffer = new_buf;
         }
 
         memcpy(temp_buffer + total_size,
@@ -133,6 +139,7 @@ int handle_request(int clientSocket,
         total_size += bytes_recv;
     }
 
+    stats_record_bytes_origin(total_size);
     cache_put(tempReq,
                       temp_buffer,
                       total_size);

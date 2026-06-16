@@ -1,0 +1,143 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/sagnik445/Desktop/mps/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	//
+$(TARGET)	Makefile	/^$(TARGET): $(OBJ)$/;"	t
+%.o	Makefile	/^%.o: %.c$/;"	t
+0	.vscode/c_cpp_properties.json	/^                "${workspaceFolder}\/**"$/;"	s	array:configurations.1.includePath
+0	.vscode/c_cpp_properties.json	/^                "${workspaceFolder}\/**",$/;"	s	array:configurations.0.includePath
+0	.vscode/c_cpp_properties.json	/^        {$/;"	o	array:configurations
+1	.vscode/c_cpp_properties.json	/^                "${workspaceFolder}\/proxy_parse"$/;"	s	array:configurations.0.includePath
+1	.vscode/c_cpp_properties.json	/^        {$/;"	o	array:configurations
+BASE_FLAGS	Makefile	/^BASE_FLAGS = -pthread -g -Wall -Wextra$/;"	m
+CACHE_H	cache/cache.h	/^#define CACHE_H$/;"	d
+CC	Makefile	/^CC = clang$/;"	m
+CFLAGS	Makefile	/^    CFLAGS = $(BASE_FLAGS) -fsanitize=address$/;"	m
+CFLAGS	Makefile	/^    CFLAGS = $(BASE_FLAGS) -fsanitize=thread$/;"	m
+CFLAGS	Makefile	/^    CFLAGS = $(BASE_FLAGS)$/;"	m
+CLIENT_HANDLER_H	client_handler/client_handler.h	/^#define CLIENT_HANDLER_H$/;"	d
+DEBUG	proxy_parse/proxy_parse.h	/^#define DEBUG /;"	d
+DEFAULT_NHDRS	proxy_parse/proxy_parse.c	/^#define DEFAULT_NHDRS /;"	d	file:
+HASH_SIZE	cache/cache.h	/^#define HASH_SIZE /;"	d
+HTTP_H	http/http.h	/^#define HTTP_H$/;"	d
+INCLUDES	Makefile	/^INCLUDES = -Icache \\$/;"	m
+MAX_BYTES	client_handler/client_handler.c	/^#define MAX_BYTES /;"	d	file:
+MAX_BYTES	http/http.c	/^#define MAX_BYTES /;"	d	file:
+MAX_CACHE_SIZE	cache/cache.h	/^#define MAX_CACHE_SIZE /;"	d
+MAX_REQ_LEN	proxy_parse/proxy_parse.c	/^#define MAX_REQ_LEN /;"	d	file:
+MIN_REQ_LEN	proxy_parse/proxy_parse.c	/^#define MIN_REQ_LEN /;"	d	file:
+OBJ	Makefile	/^OBJ = $(SRC:.c=.o)$/;"	m
+PROXY_PARSE	proxy_parse/proxy_parse.h	/^#define PROXY_PARSE$/;"	d
+ParsedHeader	proxy_parse/proxy_parse.h	/^struct ParsedHeader {$/;"	s
+ParsedHeader_create	proxy_parse/proxy_parse.c	/^void ParsedHeader_create(struct ParsedRequest *pr)$/;"	f	typeref:typename:void
+ParsedHeader_destroy	proxy_parse/proxy_parse.c	/^void ParsedHeader_destroy(struct ParsedRequest * pr)$/;"	f	typeref:typename:void
+ParsedHeader_destroyOne	proxy_parse/proxy_parse.c	/^void ParsedHeader_destroyOne(struct ParsedHeader * ph)$/;"	f	typeref:typename:void
+ParsedHeader_get	proxy_parse/proxy_parse.c	/^struct ParsedHeader* ParsedHeader_get(struct ParsedRequest *pr, $/;"	f	typeref:struct:ParsedHeader *
+ParsedHeader_headersLen	proxy_parse/proxy_parse.c	/^size_t ParsedHeader_headersLen(struct ParsedRequest *pr) $/;"	f	typeref:typename:size_t
+ParsedHeader_lineLen	proxy_parse/proxy_parse.c	/^size_t ParsedHeader_lineLen(struct ParsedHeader * ph)$/;"	f	typeref:typename:size_t
+ParsedHeader_parse	proxy_parse/proxy_parse.c	/^int ParsedHeader_parse(struct ParsedRequest * pr, char * line)$/;"	f	typeref:typename:int
+ParsedHeader_printHeaders	proxy_parse/proxy_parse.c	/^int ParsedHeader_printHeaders(struct ParsedRequest * pr, char * buf, $/;"	f	typeref:typename:int
+ParsedHeader_remove	proxy_parse/proxy_parse.c	/^int ParsedHeader_remove(struct ParsedRequest *pr, const char *key)$/;"	f	typeref:typename:int
+ParsedHeader_set	proxy_parse/proxy_parse.c	/^int ParsedHeader_set(struct ParsedRequest *pr, $/;"	f	typeref:typename:int
+ParsedRequest	proxy_parse/proxy_parse.h	/^struct ParsedRequest {$/;"	s
+ParsedRequest_create	proxy_parse/proxy_parse.c	/^struct ParsedRequest* ParsedRequest_create()$/;"	f	typeref:struct:ParsedRequest *
+ParsedRequest_destroy	proxy_parse/proxy_parse.c	/^void ParsedRequest_destroy(struct ParsedRequest *pr)$/;"	f	typeref:typename:void
+ParsedRequest_parse	proxy_parse/proxy_parse.c	/^ParsedRequest_parse(struct ParsedRequest * parse, const char *buf, $/;"	f	typeref:typename:int
+ParsedRequest_printRequestLine	proxy_parse/proxy_parse.c	/^int ParsedRequest_printRequestLine(struct ParsedRequest *pr, $/;"	f	typeref:typename:int
+ParsedRequest_requestLineLen	proxy_parse/proxy_parse.c	/^size_t ParsedRequest_requestLineLen(struct ParsedRequest *pr)$/;"	f	typeref:typename:size_t
+ParsedRequest_totalLen	proxy_parse/proxy_parse.c	/^size_t ParsedRequest_totalLen(struct ParsedRequest *pr)$/;"	f	typeref:typename:size_t
+ParsedRequest_unparse	proxy_parse/proxy_parse.c	/^int ParsedRequest_unparse(struct ParsedRequest *pr, char *buf, $/;"	f	typeref:typename:int
+ParsedRequest_unparse_headers	proxy_parse/proxy_parse.c	/^int ParsedRequest_unparse_headers(struct ParsedRequest *pr, char *buf, $/;"	f	typeref:typename:int
+QUEUE_SIZE	server/thread_pool.c	/^#define QUEUE_SIZE /;"	d	file:
+SAN	Makefile	/^SAN ?= none$/;"	m
+SERVER_H	server/server.h	/^#define SERVER_H$/;"	d
+SRC	Makefile	/^SRC = main.c \\$/;"	m
+TARGET	Makefile	/^TARGET = proxy$/;"	m
+THREAD_POOL_H	server/thread_pool.h	/^#define THREAD_POOL_H$/;"	d
+WORKER_THREADS	main.c	/^#define WORKER_THREADS /;"	d	file:
+buf	proxy_parse/proxy_parse.h	/^     char *buf;$/;"	m	struct:ParsedRequest	typeref:typename:char *
+buflen	proxy_parse/proxy_parse.h	/^     size_t buflen;$/;"	m	struct:ParsedRequest	typeref:typename:size_t
+cStandard	.vscode/c_cpp_properties.json	/^            "cStandard": "c17",$/;"	s	object:configurations.0
+cStandard	.vscode/c_cpp_properties.json	/^            "cStandard": "c17",$/;"	s	object:configurations.1
+cache_get	cache/cache.c	/^int cache_get(const char* url, char** data_out, int* size_out)$/;"	f	typeref:typename:int
+cache_hit_ratio	cache/cache.c	/^double cache_hit_ratio()$/;"	f	typeref:typename:double
+cache_init	cache/cache.c	/^void cache_init()$/;"	f	typeref:typename:void
+cache_lock	cache/cache.c	/^static pthread_mutex_t cache_lock;$/;"	v	typeref:typename:pthread_mutex_t	file:
+cache_node	cache/cache.h	/^typedef struct cache_node {$/;"	s
+cache_node	cache/cache.h	/^}cache_node;$/;"	t	typeref:struct:cache_node
+cache_print_stats	cache/cache.c	/^void cache_print_stats()$/;"	f	typeref:typename:void
+cache_put	cache/cache.c	/^void cache_put(const char* url, const char* data, int size)$/;"	f	typeref:typename:void
+checkHTTPversion	http/http.c	/^int checkHTTPversion(char *msg)$/;"	f	typeref:typename:int
+clean	Makefile	/^clean:$/;"	t
+configurationProvider	.vscode/c_cpp_properties.json	/^            "configurationProvider": "ms-vscode.makefile-tools"$/;"	s	object:configurations.0
+configurations	.vscode/c_cpp_properties.json	/^    "configurations": [$/;"	a
+connectRemoteServer	http/http.c	/^int connectRemoteServer(char* host_addr, int port_num)$/;"	f	typeref:typename:int
+cppStandard	.vscode/c_cpp_properties.json	/^            "cppStandard": "c++17",$/;"	s	object:configurations.0
+cppStandard	.vscode/c_cpp_properties.json	/^            "cppStandard": "c++17",$/;"	s	object:configurations.1
+create_server_socket	server/server.c	/^int create_server_socket(int port)$/;"	f	typeref:typename:int
+current_cache_size	cache/cache.c	/^static size_t current_cache_size = 0;$/;"	v	typeref:typename:size_t	file:
+data	cache/cache.h	/^        char* data;                \/\/ Cached data$/;"	m	struct:cache_node	typeref:typename:char *
+debug	proxy_parse/proxy_parse.c	/^void debug(const char * format, ...) {$/;"	f	typeref:typename:void
+defines	.vscode/c_cpp_properties.json	/^            "defines": [],$/;"	a	object:configurations.0
+defines	.vscode/c_cpp_properties.json	/^            "defines": [],$/;"	a	object:configurations.1
+evict_lru	cache/cache.c	/^static void evict_lru()$/;"	f	typeref:typename:void	file:
+front	server/thread_pool.c	/^static int front = 0;$/;"	v	typeref:typename:int	file:
+handle_client	client_handler/client_handler.c	/^void handle_client(int socket)$/;"	f	typeref:typename:void
+handle_connect	client_handler/client_handler.c	/^static int handle_connect(int clientSocket,$/;"	f	typeref:typename:int	file:
+handle_request	http/http.c	/^int handle_request(int clientSocket,$/;"	f	typeref:typename:int
+handle_sigint	main.c	/^void handle_sigint(int sig)$/;"	f	typeref:typename:void
+hash_func	cache/cache.c	/^static unsigned int hash_func(const char* str)$/;"	f	typeref:typename:unsigned int	file:
+hash_next	cache/cache.h	/^        struct cache_node* hash_next;  \/\/ Next node in hash bucket to handle collisions$/;"	m	struct:cache_node	typeref:struct:cache_node *
+hash_table	cache/cache.c	/^static cache_node* hash_table[HASH_SIZE];$/;"	v	typeref:typename:cache_node * []	file:
+head	cache/cache.c	/^static cache_node* head = NULL;$/;"	v	typeref:typename:cache_node *	file:
+headers	proxy_parse/proxy_parse.h	/^     struct ParsedHeader *headers;$/;"	m	struct:ParsedRequest	typeref:struct:ParsedHeader *
+headerslen	proxy_parse/proxy_parse.h	/^     size_t headerslen;$/;"	m	struct:ParsedRequest	typeref:typename:size_t
+headersused	proxy_parse/proxy_parse.h	/^     size_t headersused;$/;"	m	struct:ParsedRequest	typeref:typename:size_t
+host	proxy_parse/proxy_parse.h	/^     char *host; $/;"	m	struct:ParsedRequest	typeref:typename:char *
+includePath	.vscode/c_cpp_properties.json	/^            "includePath": [$/;"	a	object:configurations.0
+includePath	.vscode/c_cpp_properties.json	/^            "includePath": [$/;"	a	object:configurations.1
+insert_at_head	cache/cache.c	/^static void insert_at_head(cache_node* node)$/;"	f	typeref:typename:void	file:
+intelliSenseMode	.vscode/c_cpp_properties.json	/^            "intelliSenseMode": "linux-clang-x64"$/;"	s	object:configurations.1
+intelliSenseMode	.vscode/c_cpp_properties.json	/^            "intelliSenseMode": "linux-clang-x64",$/;"	s	object:configurations.0
+key	proxy_parse/proxy_parse.h	/^     char * key;$/;"	m	struct:ParsedHeader	typeref:typename:char *
+keylen	proxy_parse/proxy_parse.h	/^     size_t keylen;$/;"	m	struct:ParsedHeader	typeref:typename:size_t
+main	main.c	/^int main(int argc, char* argv[])$/;"	f	typeref:typename:int
+method	proxy_parse/proxy_parse.h	/^     char *method; $/;"	m	struct:ParsedRequest	typeref:typename:char *
+move_to_front	cache/cache.c	/^static void move_to_front(cache_node* node)$/;"	f	typeref:typename:void	file:
+name	.vscode/c_cpp_properties.json	/^            "name": "Linux",$/;"	s	object:configurations.0
+name	.vscode/c_cpp_properties.json	/^            "name": "lin",$/;"	s	object:configurations.1
+next	cache/cache.h	/^        struct cache_node* next;   \/\/ Next node in LRU list$/;"	m	struct:cache_node	typeref:struct:cache_node *
+path	proxy_parse/proxy_parse.h	/^     char *path;$/;"	m	struct:ParsedRequest	typeref:typename:char *
+port	proxy_parse/proxy_parse.h	/^     char *port; $/;"	m	struct:ParsedRequest	typeref:typename:char *
+prev	cache/cache.h	/^        struct cache_node* prev;   \/\/ Previous node in LRU list$/;"	m	struct:cache_node	typeref:struct:cache_node *
+protocol	proxy_parse/proxy_parse.h	/^     char *protocol; $/;"	m	struct:ParsedRequest	typeref:typename:char *
+queue	server/thread_pool.c	/^static int queue[QUEUE_SIZE];$/;"	v	typeref:typename:int[]	file:
+queue_lock	server/thread_pool.c	/^static pthread_mutex_t queue_lock;$/;"	v	typeref:typename:pthread_mutex_t	file:
+queue_not_empty	server/thread_pool.c	/^static pthread_cond_t queue_not_empty;$/;"	v	typeref:typename:pthread_cond_t	file:
+rear	server/thread_pool.c	/^static int rear = 0;$/;"	v	typeref:typename:int	file:
+rebuild	Makefile	/^rebuild: clean $(TARGET)/;"	t
+remove_from_list	cache/cache.c	/^static void remove_from_list(cache_node* node)$/;"	f	typeref:typename:void	file:
+root_abs_path	proxy_parse/proxy_parse.c	/^static const char *root_abs_path = "\/";$/;"	v	typeref:typename:const char *	file:
+sendErrorMessage	http/http.c	/^int sendErrorMessage(int socket, int status_code)$/;"	f	typeref:typename:int
+size	cache/cache.h	/^        int size;                  \/\/ Size of cached data$/;"	m	struct:cache_node	typeref:typename:int
+tail	cache/cache.c	/^static cache_node* tail = NULL;$/;"	v	typeref:typename:cache_node *	file:
+thread_count	server/thread_pool.c	/^static int thread_count;$/;"	v	typeref:typename:int	file:
+thread_pool_add_task	server/thread_pool.c	/^void thread_pool_add_task(int client_socket)$/;"	f	typeref:typename:void
+thread_pool_init	server/thread_pool.c	/^void thread_pool_init(int num_threads)$/;"	f	typeref:typename:void
+total_hits	cache/cache.c	/^static size_t total_hits = 0;$/;"	v	typeref:typename:size_t	file:
+total_lookups	cache/cache.c	/^static size_t total_lookups = 0;$/;"	v	typeref:typename:size_t	file:
+tunnel_data	client_handler/client_handler.c	/^static void tunnel_data(int clientSocket,$/;"	f	typeref:typename:void	file:
+url	cache/cache.h	/^        char* url;                 \/\/ URL string$/;"	m	struct:cache_node	typeref:typename:char *
+value	proxy_parse/proxy_parse.h	/^     char * value;$/;"	m	struct:ParsedHeader	typeref:typename:char *
+valuelen	proxy_parse/proxy_parse.h	/^     size_t valuelen;$/;"	m	struct:ParsedHeader	typeref:typename:size_t
+version	.vscode/c_cpp_properties.json	/^    "version": 4$/;"	n
+version	proxy_parse/proxy_parse.h	/^     char *version;$/;"	m	struct:ParsedRequest	typeref:typename:char *
+worker_loop	server/thread_pool.c	/^static void* worker_loop(void* arg)$/;"	f	typeref:typename:void *	file:
+workers	server/thread_pool.c	/^static pthread_t *workers;$/;"	v	typeref:typename:pthread_t *	file:

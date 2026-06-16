@@ -21,6 +21,7 @@ INCLUDES = -Icache \
            -Ihttp \
            -Iproxy_parse \
            -Iserver \
+           -Istats \
 					 
 
 
@@ -31,7 +32,8 @@ SRC = main.c \
       client_handler/client_handler.c \
       http/http.c \
       proxy_parse/proxy_parse.c \
-			server/thread_pool.c
+      stats/stats.c \
+      server/thread_pool.c
 
 # Object files
 OBJ = $(SRC:.c=.o)
@@ -53,3 +55,15 @@ clean:
 
 # Rebuild shortcut
 rebuild: clean $(TARGET)
+
+# Run stress test
+test: $(TARGET)
+	python3 tests/stress_test.py
+
+# Run proxy and test automatically
+test-auto: $(TARGET)
+	@./$(TARGET) 8080 & \
+	PROXY_PID=$$!; \
+	trap "kill $$PROXY_PID" EXIT; \
+	sleep 2; \
+	python3 tests/stress_test.py

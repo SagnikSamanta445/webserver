@@ -2,7 +2,7 @@
 #include "cache.h"
 #include "http.h"
 #include "proxy_parse.h"
-
+#include "stats.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,18 +54,52 @@ void handle_client(int socket)
         return;
     }
 
-    /* -------- CACHE CHECK -------- */
-
-    char* tempReq = strdup(buffer);
-    if (!tempReq) {
+    /* -------- PARSE REQUEST ------ */
+    struct ParsedRequest* request = ParsedRequest_create();
+    if(!request)
+    {
         free(buffer);
         return;
     }
 
+    if(ParsedRequest_parse(request, buffer, total_bytes) != 0){
+        stats_record_error();
+        sendErrorMessage(socket, 400);
+        ParsedRequest_destroy(request);
+        free(buffer);
+        return;
+    }
+
+    if(!strcmp(request->method, "CONNECT"))
+    {
+        stats_record_connect();
+        handle_connect(socket, request);
+        ParsedRequest_destroy(request);
+        free(buffer);
+        return;
+    }
+
+    if(strcmp(request->method, "GET") != 0 || !request->host || !request->path ||
+              checkHTTPversion(request->version) != 1)
+    {
+        stats_record_error();
+        sendErrorMessage(socket, 400);
+        ParsedRequest_destroy(request);
+        free(buffer);
+        return;
+    }
+
+    stats_record_get();
+
+    char cache_key[2048];
+    snprintf(cache_key, sizeof(cache_key), "%s%s", request->host, request->path);
+
+    /* -------- CACHE CHECK -------- */
+
     char* cached_data = NULL;
     int cached_size = 0;
 
-    if (cache_get(tempReq, &cached_data, &cached_size))
+    if (cache_get(cache_key, &cached_data, &cached_size))
     {
         int sent = 0;
 
@@ -80,49 +114,20 @@ void handle_client(int socket)
             sent += chunk;
         }
 
+        stats_record_bytes_cache(cached_size);
+
         free(cached_data);
     }
-    else
+    else 
     {
-        struct ParsedRequest* request =
-            ParsedRequest_create();
-
-        if (ParsedRequest_parse(request,
-                                buffer,
-                                total_bytes) == 0)
+        if(handle_request(socket, request, cache_key) == -1)
         {
-            if (!strcmp(request->method, "CONNECT"))
-            {
-                handle_connect(socket, request);
-            }
-            else if (!strcmp(request->method, "GET") &&
-                request->host &&
-                request->path &&
-                checkHTTPversion(request->version) == 1)
-            {
-                if (handle_request(socket,
-                           request,
-                           tempReq) == -1)
-                {
-                    sendErrorMessage(socket, 500);
-                }
-            }
-            else
-            {
-                sendErrorMessage(socket, 400);
-            }
+            stats_record_error();
+            sendErrorMessage(socket, 500);
         }
-        else
-        {
-            sendErrorMessage(socket, 400);
-        }
-
-        ParsedRequest_destroy(request);
     }
-
     
-
-    free(tempReq);
+    ParsedRequest_destroy(request);
     free(buffer);
 }
 

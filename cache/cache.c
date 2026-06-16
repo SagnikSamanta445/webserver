@@ -11,6 +11,8 @@ static cache_node* head = NULL;
 static cache_node* tail = NULL;
 
 static size_t current_cache_size = 0;
+static size_t entry_count = 0;
+static size_t eviction_count = 0;
 static size_t total_lookups = 0;
 static size_t total_hits = 0;
 static pthread_mutex_t cache_lock;
@@ -89,6 +91,9 @@ static void evict_lru()
 
     /* Remove from DLL */
     remove_from_list(node);
+    //update counts
+    eviction_count++;
+    entry_count--;
 
     current_cache_size -= node->size;
 
@@ -164,6 +169,7 @@ void cache_put(const char* url, const char* data, int size)
         if (strcmp(node->url, url) == 0)
         {
             current_cache_size -= node->size;
+            current_cache_size += size;
 
             free(node->data);
             node->data = malloc(size);
@@ -177,10 +183,8 @@ void cache_put(const char* url, const char* data, int size)
 
             move_to_front(node);
 
-            while (current_cache_size + size > MAX_CACHE_SIZE)
+            while (current_cache_size  > MAX_CACHE_SIZE)
                 evict_lru();
-
-            current_cache_size += size;
 
             pthread_mutex_unlock(&cache_lock);
             return;
@@ -220,24 +224,50 @@ void cache_put(const char* url, const char* data, int size)
     new_node->hash_next = hash_table[index];
     hash_table[index] = new_node;
 
+    entry_count++;
     current_cache_size += size;
 
     pthread_mutex_unlock(&cache_lock);
 }
 
 
-double cache_hit_ratio()
-{
-    if (total_lookups == 0)
-        return 0.0;
-
-    return (double) total_hits / total_lookups;
+double cache_hit_ratio() {
+    pthread_mutex_lock(&cache_lock);
+    size_t lk = total_lookups;
+    size_t ht = total_hits;
+    pthread_mutex_unlock(&cache_lock);
+    if (lk == 0) return 0.0;
+    return (double)ht / lk;
 }
 
-void cache_print_stats()
-{
-    printf("Cache lookups: %zu\n", total_lookups);
-    printf("Cache hits: %zu\n", total_hits);
-    printf("Hit ratio: %.2f%%\n",
-           cache_hit_ratio() * 100);
+
+void cache_print_stats() {
+    pthread_mutex_lock(&cache_lock);
+    size_t lk = total_lookups;
+    size_t ht = total_hits;
+    pthread_mutex_unlock(&cache_lock);
+    printf("Cache lookups: %zu\n", lk);
+    printf("Cache hits: %zu\n", ht);
+    printf("Hit ratio: %.2f%%\n", (lk ? 100.0 * ht / lk : 0.0));
+}
+
+size_t cache_entry_count() {
+    pthread_mutex_lock(&cache_lock);
+    size_t n = entry_count;
+    pthread_mutex_unlock(&cache_lock);
+    return n;
+}
+
+size_t cache_current_size() {
+    pthread_mutex_lock(&cache_lock);
+    size_t s = current_cache_size;
+    pthread_mutex_unlock(&cache_lock);
+    return s;
+}
+
+size_t cache_eviction_count() {
+    pthread_mutex_lock(&cache_lock);
+    size_t e = eviction_count;
+    pthread_mutex_unlock(&cache_lock);
+    return e;
 }

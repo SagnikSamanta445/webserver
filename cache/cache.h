@@ -6,6 +6,10 @@
 #define MAX_CACHE_SIZE (200*(1 << 20))
 #define HASH_SIZE 1024
 
+size_t cache_entry_count();
+size_t cache_current_size();
+size_t cache_eviction_count();
+
 typedef struct cache_node {
         char* url;                 // URL string
         char* data;                // Cached data

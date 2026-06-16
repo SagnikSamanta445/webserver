@@ -17,32 +17,33 @@ static pthread_cond_t queue_not_empty;
 static pthread_t *workers;
 static int thread_count;
 
+// Worker thread function: continuously fetch tasks from the queue and handle them
 static void* worker_loop(void* arg)
 {
-    // Worker thread loop: continuously fetch tasks from the queue and handle them
+    
     while (1)
     {
-        pthread_mutex_lock(&queue_lock);                          // Lock the queue mutex
+        pthread_mutex_lock(&queue_lock);                          
 
         while (front == rear)
-            pthread_cond_wait(&queue_not_empty, &queue_lock);    // Wait until there is a task in the queue
+            pthread_cond_wait(&queue_not_empty, &queue_lock);   
 
         int client_socket = queue[front];
-        front = (front + 1) % QUEUE_SIZE;                        // Move the front pointer to the next task          
+        front = (front + 1) % QUEUE_SIZE;                              
 
-        pthread_mutex_unlock(&queue_lock);                       // Unlock the queue mutex
+        pthread_mutex_unlock(&queue_lock);                      
 
         printf("Worker %lu handling client\n", pthread_self());
-        handle_client(client_socket);                            // Handle the client request 
-        close(client_socket);                                    // Close the client socket after handling
+        handle_client(client_socket);                          
+        close(client_socket);                                   
     }
 
     return NULL;
 }
 
+// Initialize the thread pool with the specified number of worker threads
 void thread_pool_init(int num_threads)
 {
-    // Initialize the thread pool with the specified number of worker threads
     thread_count = num_threads;
 
     // Initialize the queue and synchronization primitives
@@ -55,14 +56,23 @@ void thread_pool_init(int num_threads)
         pthread_create(&workers[i], NULL, worker_loop, NULL);
 }
 
+
 void thread_pool_add_task(int client_socket)
 {
 
     // Add a new client socket task to the queue for worker threads to process
     pthread_mutex_lock(&queue_lock);
+    int next_rear = (rear+1) % QUEUE_SIZE;
+
+    if(next_rear == front){
+        pthread_mutex_unlock(&queue_lock);
+        fprintf(stderr, "Thread pool queue full, dropping fd %d\n", client_socket);
+        close(client_socket);
+        return;
+    }
 
     queue[rear] = client_socket;
-    rear = (rear + 1) % QUEUE_SIZE;
+    rear = next_rear;
 
     pthread_cond_signal(&queue_not_empty);
     pthread_mutex_unlock(&queue_lock);
