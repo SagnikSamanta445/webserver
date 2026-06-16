@@ -81,7 +81,8 @@ static void evict_lru()
 
     /* Remove from hash table */
     unsigned int index = hash_func(node->url);
-
+    printf("EVICTING: %s (%d bytes)\n",node->url,node->size);
+    
     cache_node** curr = &hash_table[index];
     while (*curr && *curr != node)
         curr = &(*curr)->hash_next;

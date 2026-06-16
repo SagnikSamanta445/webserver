@@ -50,9 +50,7 @@ int connectRemoteServer(char* host_addr, int port_num)
 
 /* ---------------- HANDLE REQUEST ---------------- */
 
-int handle_request(int clientSocket,
-                   struct ParsedRequest *request,
-                   char *tempReq)
+int handle_request(int clientSocket, struct ParsedRequest *request, char *tempReq)
 {
     char *buf = malloc(MAX_BYTES);
     if (!buf)
