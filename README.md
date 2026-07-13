@@ -162,8 +162,8 @@ python3 test/stress_test.py
 
 ### 1. Concurrent HTTP & HTTPS Workload
 
-Tested with 2 http and 2 https servers 50 times each
-![Waiting for image](images/HTTP_HTTPS_validation.png)
+<img width="688" height="271" alt="Screenshot from 2026-06-16 19-06-28" src="https://github.com/user-attachments/assets/d670d257-0efb-4fac-be29-8b3e40038f11" />
+
 
 ### 2. LRU Eviction Validation
 
