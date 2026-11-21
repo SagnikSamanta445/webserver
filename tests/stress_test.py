@@ -1,9 +1,14 @@
+import os
+
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+# Works against either the Go or legacy C binary; override with PROXY_URL.
+PROXY_URL = os.environ.get("PROXY_URL", "http://127.0.0.1:8080")
+
 proxy = {
-    "http": "http://127.0.0.1:8080",
-    "https": "http://127.0.0.1:8080",
+    "http": PROXY_URL,
+    "https": PROXY_URL,
 }
 
 urls = [
