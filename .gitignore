@@ -8,3 +8,7 @@ a.out
 
 # Build folders
 build/
+bin/
+
+# Legacy C binary
+/proxy

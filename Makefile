@@ -60,3 +60,16 @@ rebuild: clean $(TARGET)
 test: $(TARGET)
 	python3 tests/stress_test.py
 
+# ---------------- Go implementation ----------------
+GO ?= go
+GO_TARGET = bin/proxy
+
+go-build:
+	$(GO) build -o $(GO_TARGET) ./cmd/proxy
+
+go-test:
+	$(GO) vet ./...
+	$(GO) test -race ./...
+
+.PHONY: clean rebuild test go-build go-test
+
